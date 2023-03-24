@@ -2,16 +2,17 @@ import React from "react";
 import { BrowserRouter } from "react-router-dom";
 import { FirebaseProvider } from "./context/firebase";
 import { AuthenticationProvider } from "./context/authentication";
+import { DataProvider } from './context/dataProvider'
 
-type RootProviderProps = {
-  children: React.ReactNode;
-};
-
-export const RootProvider = ({ children }: RootProviderProps) => {
+export const RootProvider = ({ children }) => {
   return (
     <BrowserRouter>
       <FirebaseProvider>
-        <AuthenticationProvider>{children}</AuthenticationProvider>
+        <AuthenticationProvider>
+          <DataProvider>
+            {children}
+          </DataProvider>
+        </AuthenticationProvider>
       </FirebaseProvider>
     </BrowserRouter>
   );

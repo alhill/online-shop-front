@@ -19,7 +19,6 @@ const AuthenticationProvider = ({ children }) => {
     new Promise(async (resolve, reject) => {
       try {
         await doUserLoginOnFirebase(email, password);
-
         resolve();
       } catch (e) {
         reject(e);

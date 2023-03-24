@@ -1,3 +1,7 @@
 .customConfirm .ant-modal-confirm-btns{
     display: none;
 }
+
+* {
+    font-family: "Source Sans Pro";
+}

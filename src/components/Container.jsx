@@ -1,14 +1,17 @@
 import { UserOutlined } from "@ant-design/icons";
-import { ShoppingCartOutlined } from "@ant-design/icons/lib/icons";
+import { MinusOutlined, PlusOutlined, ShoppingCartOutlined } from "@ant-design/icons/lib/icons";
 import { Button, Divider, Form, Input, Modal, message, Dropdown } from "antd";
+import { Link } from 'react-router-dom'
 import React, { useEffect, useState } from "react";
 import styled from 'styled-components'
 import { useData } from "../context/dataProvider";
 import { useAuthentication } from "../context/authentication";
 import { useHistory } from "react-router-dom";
+import FlexWrapper from "./FlexWrapper";
+import { set } from "lodash";
 
-const Container = ({ children }) => {
-  const { loadProducts } = useData()
+const Container = ({ children, loading }) => {
+  const { loadProducts, cart, cartModal, setCartModal, mutateCart } = useData()
   const { user, doLogin, doLogout } = useAuthentication()
   const history = useHistory()
 
@@ -16,6 +19,9 @@ const Container = ({ children }) => {
 
   useEffect(() => {
     loadProducts()
+    if(window.location.search === "?login" && !user){
+      setLoginModal({ show: true })
+    }
   }, [])
 
   const [loginForm] = Form.useForm()
@@ -31,28 +37,32 @@ const Container = ({ children }) => {
     }
   }
 
-  useEffect(() => {
-    console.log(user)
-  }, [user])
-
   return (
     <Wrapper>
       <Header>
-        <img 
-          src={process.env.REACT_APP_MAIN_LOGO} 
-          alt="Srta.Nognog Shop"
-          className="logo"
-        />
+        <Link
+          to="/"
+        >
+          <img 
+            // src={process.env.REACT_APP_MAIN_LOGO} 
+            src="http://localhost:3000/logo.png"
+            alt="Srta.Nognog Shop"
+            className="logo"
+          />
+        </Link>
         <Buttons>
           <Dropdown
             disabled={!user}
             menu={{
               items: [
                 {
+                  key: "profile",
+                  label: <Link to="/mi-perfil">Mi perfil</Link>
+                },
+                {
                   key: "logout",
                   label: <div onClick={async () => {
                     try{
-                      console.log("holi!!")
                       await doLogout()
                       message.info("Has cerrado sesión correctamente, vuelve pronto!")
                     } catch(err) {
@@ -64,13 +74,11 @@ const Container = ({ children }) => {
             }}
           >
             <div>
-              { user?.email && <span style={{ marginRight: "0.5em" }}>{ user.email }</span> }
+              { user?.email && window.screen.width > 600 && <span style={{ marginRight: "0.5em" }}>{ user.email }</span> }
               <UserOutlined 
                 onClick={() => {
                   if(!user){
                     setLoginModal({ show: true })
-                  } else {
-                    history.push("/mi-perfil")
                   }
                 }}
               />
@@ -80,7 +88,7 @@ const Container = ({ children }) => {
         </Buttons>
       </Header>
       <Body>
-        { children }}
+        { children }
       </Body>
       <Footer>
         &reg; {new Date().getFullYear()} Srta. Nognog
@@ -117,20 +125,66 @@ const Container = ({ children }) => {
             <Input.Password />
           </Form.Item>
         </Form>
-        <ButtonWrapper>
+        <FlexWrapper>
           <Button onClick={() => setLoginModal({ show: false })}>Cancelar</Button>
           <Button 
             type="primary"
             onClick={() => loginForm.submit()}
           >Acceder</Button>
-        </ButtonWrapper>
+        </FlexWrapper>
         <Divider />
-        <p style={{ textAlign: "center", fontWeight: "bold" }}>¿Nuevo cliente?</p>
-        <ButtonWrapper>
-          <Button type="primary">Crear cuenta</Button>
-        </ButtonWrapper>
+        <FlexWrapper>
+            <Button
+              type="primary"
+              onClick={() => history.push("/nuevo-usuario")}
+            >Crear cuenta</Button>
+            <Button
+              type="primary"
+              onClick={() => history.push("/recuperar-contrasena")}
+            >Recuperar contraseña</Button>
+        </FlexWrapper>
       </Modal>
 
+      <Modal
+        open={cartModal}
+        onCancel={() => setCartModal(false)}
+        footer={null}
+      >
+        <h3 style={{ marginTop: "1em", fontWeight: "bold" }}>Tu cesta</h3>
+        {(cart?.items || []).length === 0 && <p>Tu cesta está vacía</p>}
+        {(cart?.items || []).map(it => {
+          return <CartRow>
+            <p><strong>{it.qty}x</strong> - {it.name}:</p>
+            <p><strong>{it.qty * it.price}€</strong></p>
+            <div style={{
+              display: "flex",
+              flexDirection: "column"
+            }}>
+              <Button
+                size="small"
+                icon={<PlusOutlined style={{ color: "#666", fontSize: 12 }} />}
+                onClick={() => mutateCart(it.slug, 1)}
+                />
+              <Button 
+                size="small" 
+                icon={<MinusOutlined style={{ color: "#666", fontSize: 12 }} />} 
+                onClick={() => mutateCart(it.slug, -1)}
+              />
+            </div>
+          </CartRow>
+        })}
+        <Divider />
+        <h2>TOTAL: {cart.total}€</h2>
+        <FlexWrapper>
+          <Button onClick={() => setCartModal(false)}>Continuar comprando</Button>
+          <Link to="/finalizar-compra">
+            <Button
+              type="primary"
+              disabled={(cart?.items || []).length === 0}
+            >Finalizar compra</Button>
+          </Link>
+        </FlexWrapper>
+      </Modal>
     </Wrapper>
   );
 };
@@ -140,15 +194,27 @@ const Wrapper = styled.div`
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
+  min-width: 100vw;
 `
+
+const Body = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  align-items: center;
+  width: calc(100vw - 4em);
+  flex: 1;
+`
+
 const Header = styled.div`
   display: flex;
   justify-content: space-between;
   padding: 1em;
   width: 100%;
   .logo{
-    width: 250px;
+    width: 10em;
     maxWidth: 35vw;
+    object-fit: contain;
   }
 `
 
@@ -171,16 +237,6 @@ const Buttons = styled.div`
   }
 `
 
-const ButtonWrapper = styled.div`
-  display: flex;
-  justify-content: space-evenly;
-  width: 100%;
-`
-
-const Body = styled.div`
-  width: 100%;
-  flex: 1;
-`
 const Footer = styled.div`
   display: flex;
   justify-content: space-between;
@@ -188,6 +244,16 @@ const Footer = styled.div`
   width: 100%;
   height: 100px;
   padding: 1em;
+`
+
+const CartRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5em;
+  & p{
+    margin: 0;
+  }
 `
 
 export default Container

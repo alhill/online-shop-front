@@ -1,6 +1,13 @@
 .customConfirm .ant-modal-confirm-btns{
     display: none;
 }
+.ant-modal-content{
+    border-radius: 2px !important;
+}
+.ant-modal-content .ant-btn-primary{
+    border-radius: 2px !important;
+    background-color: #01deff;
+}
 
 * {
     font-family: "Source Sans Pro";

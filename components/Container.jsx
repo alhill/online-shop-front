@@ -1,19 +1,16 @@
 import { UserOutlined } from "@ant-design/icons";
 import { MinusOutlined, PlusOutlined, ShoppingCartOutlined } from "@ant-design/icons/lib/icons";
 import { Button, Divider, Form, Input, Modal, message, Dropdown } from "antd";
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import React, { useEffect, useState } from "react";
 import styled from 'styled-components'
-import { useData } from "../context/dataProvider";
+import { useAppContext } from "../context/appContext";
 import { useAuthentication } from "../context/authentication";
-import { useHistory } from "react-router-dom";
 import FlexWrapper from "./FlexWrapper";
-import { set } from "lodash";
 
 const Container = ({ children, loading }) => {
-  const { loadProducts, cart, cartModal, setCartModal, mutateCart } = useData()
-  const { user, doLogin, doLogout } = useAuthentication()
-  const history = useHistory()
+  const { loadProducts, cart, cartModal, setCartModal, mutateCart } = useAppContext()
+  const { user, doLogin, doLogout, getLoggedUser } = useAuthentication()
 
   const [loginModal, setLoginModal] = useState({ show: false })
 
@@ -30,6 +27,9 @@ const Container = ({ children, loading }) => {
     const { email, password } = loginForm.getFieldsValue()
     try{
       await doLogin(email, password)
+      const justLogged = await getLoggedUser()
+      console.log({ justLogged })
+      setLoginModal({ show: false })
     } catch(err) {
       if(err.code === "auth/invalid-email" || err.code === "auth/wrong-password"){
         message.error("El usuario o la contraseña son incorrectos")
@@ -41,10 +41,10 @@ const Container = ({ children, loading }) => {
     <Wrapper>
       <Header>
         <Link
-          to="/"
+          href="/"
         >
           <img 
-            // src={process.env.REACT_APP_MAIN_LOGO} 
+            // src={process.env.NEXT_PUBLIC_MAIN_LOGO} 
             src="http://localhost:3000/logo.png"
             alt="Srta.Nognog Shop"
             className="logo"
@@ -57,7 +57,7 @@ const Container = ({ children, loading }) => {
               items: [
                 {
                   key: "profile",
-                  label: <Link to="/mi-perfil">Mi perfil</Link>
+                  label: <Link href="/mi-perfil">Mi perfil</Link>
                 },
                 {
                   key: "logout",
@@ -84,7 +84,9 @@ const Container = ({ children, loading }) => {
               />
             </div>
           </Dropdown>
-          <ShoppingCartOutlined />
+          <ShoppingCartOutlined 
+            onClick={() => setCartModal(true)}
+          />
         </Buttons>
       </Header>
       <Body>
@@ -134,14 +136,8 @@ const Container = ({ children, loading }) => {
         </FlexWrapper>
         <Divider />
         <FlexWrapper>
-            <Button
-              type="primary"
-              onClick={() => history.push("/nuevo-usuario")}
-            >Crear cuenta</Button>
-            <Button
-              type="primary"
-              onClick={() => history.push("/recuperar-contrasena")}
-            >Recuperar contraseña</Button>
+            <Link href="/nuevo-usuario"><Button type="primary">Crear cuenta</Button></Link>
+            <Link href="/recuperar-contrasena"><Button type="primary">Recuperar contraseña</Button></Link>
         </FlexWrapper>
       </Modal>
 
@@ -177,7 +173,7 @@ const Container = ({ children, loading }) => {
         <h2>TOTAL: {cart.total}€</h2>
         <FlexWrapper>
           <Button onClick={() => setCartModal(false)}>Continuar comprando</Button>
-          <Link to="/finalizar-compra">
+          <Link href="/finalizar-compra">
             <Button
               type="primary"
               disabled={(cart?.items || []).length === 0}

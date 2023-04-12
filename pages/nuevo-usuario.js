@@ -1,31 +1,18 @@
-import React, { useState, useEffect } from "react";
-import { useAuthentication } from "../context/authentication";
-import { useData } from '../context/dataProvider'
-import { useHistory } from "react-router-dom";
+import { useState } from "react";
+import { useRouter } from "next/router"
 import { Container, FormStyler } from "../components";
-import styled from 'styled-components'
 import { intersection } from "lodash";
 import { Button, Form, Input, message, Modal } from "antd";
-import { getApp } from "firebase/app";
-import { getFunctions, connectFunctionsEmulator, httpsCallable } from "firebase/functions";
 import { createUserWithEmailAndPassword, getAuth, sendEmailVerification } from 'firebase/auth'
 import { estaSeguroDeQue } from "../utils";
 
 const Register = () => {
-  const history = useHistory();
-  const form = Form.useForm()[0]
-  const { allProducts, tags, productsPerTag, featured, frontpageProducts } = useData()
 
+  const form = Form.useForm()[0]
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
 
   const auth = getAuth()
-  const functions = getFunctions(getApp(), "europe-west1");
-  connectFunctionsEmulator(functions, "localhost", 5001);
-  const registerUser = httpsCallable(functions, 'registerUser');
-
-  useEffect(() => {
-    console.log({ allProducts, tags, productsPerTag, featured, frontpageProducts })
-  }, [allProducts, tags, productsPerTag, featured, frontpageProducts])
 
   const handleSubmit = async values => {
     setLoading(true)
@@ -37,7 +24,7 @@ const Register = () => {
         Modal.success({
           title: "Revisa tu correo",
           content: `En breves instantes recibirás un correo electrónico en ${values?.email} con un enlace de verificación de registro`,
-          onOk: () => history.push("/")
+          onOk: () => router.push("/")
         })
       }
     } catch(err) {
@@ -46,7 +33,7 @@ const Register = () => {
           title: "Usuario registrado",
           text: "El correo electrónico ya está registrado. ¿Deseas recuperar la contraseña?",
           desea: "Recuperar contraseña",
-          fn: () => history.push("/recuperar-contrasena")
+          fn: () => router.push("/recuperar-contrasena")
         })
       } else if(err?.code === "auth/invalid-email"){
         message.error("El correo electrónico introducido no es válido")

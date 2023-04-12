@@ -14,14 +14,14 @@ We're also using **Typerscript**!!
 3. You should get your firebase configuration keys in order to connect to your firebase console and **we recommend** to add them to an `.env` file with this structure:
 
 ```
-REACT_APP_API_KEY=
-REACT_APP_AUTH_DOMAIN=
-REACT_APP_DATABASE_URL=
-REACT_APP_PROJECT_ID=
-REACT_APP_STORAGE_BUCKET=
-REACT_APP_MESSAGING_SENDER_ID=
-REACT_APP_APP_ID=
-REACT_APP_MEASUREMENT_ID=
+NEXT_PUBLIC_API_KEY=
+NEXT_PUBLIC_AUTH_DOMAIN=
+NEXT_PUBLIC_DATABASE_URL=
+NEXT_PUBLIC_PROJECT_ID=
+NEXT_PUBLIC_STORAGE_BUCKET=
+NEXT_PUBLIC_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_APP_ID=
+NEXT_PUBLIC_MEASUREMENT_ID=
 ```
 
 4. After that, all you need to do is to run the project with `yarn start`

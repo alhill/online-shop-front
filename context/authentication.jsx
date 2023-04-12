@@ -1,4 +1,4 @@
-import React, { createContext, ReactNode, useContext } from "react";
+import React, { createContext, useContext } from "react";
 import { useFirebase } from "./firebase";
 
 
@@ -43,6 +43,7 @@ const AuthenticationProvider = ({ children }) => {
       value={{
         isLogged: !!getLoggedUser(),
         user: getLoggedUser(),
+        getLoggedUser,
         isFetchingUser,
         doLogin,
         doRegister,

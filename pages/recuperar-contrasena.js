@@ -1,27 +1,21 @@
-import React, { useState, useEffect } from "react";
-import { useAuthentication } from "../context/authentication";
-import { useData } from '../context/dataProvider'
-import { useHistory } from "react-router-dom";
+import { useState } from "react";
 import { Container, FlexWrapper, FormStyler } from "../components";
-import styled from 'styled-components'
-import { intersection } from "lodash";
 import { Button, Form, Input, message, Modal } from "antd";
-import { getApp } from "firebase/app";
-import { getFunctions, connectFunctionsEmulator, httpsCallable } from "firebase/functions";
-import { createUserWithEmailAndPassword, getAuth, sendEmailVerification, sendPasswordResetEmail } from 'firebase/auth'
-import { estaSeguroDeQue } from "../utils";
+import { getAuth, sendPasswordResetEmail } from 'firebase/auth'
+import { useRouter } from 'next/router'
+import Link from 'next/link'
 
 const RecoverPassword = () => {
-    const history = useHistory();
     const form = Form.useForm()[0]
     const [loading, setLoading] = useState(false)
     const auth = getAuth()
+    const router = useRouter()
     
     const launchModal = email => {
         Modal.success({
             title: "Revisa tu correo",
             content: `En breves instantes recibirás un correo electrónico en ${email} con un enlace de recuperación de contraseña`,
-            onOk: () => history.push("/")
+            onOk: () => router.push("/")
         })
     }
 
@@ -53,9 +47,9 @@ const RecoverPassword = () => {
                         <Input />
                     </Form.Item>
                     <FlexWrapper>
-                        <Button
-                            onClick={() => history.push("/?login")}
-                        >Volver</Button>
+                        <Link href="/?login">
+                            <Button>Volver</Button>
+                        </Link>
                         <Button
                             type="primary"
                             onClick={() => form.submit()}
@@ -65,8 +59,8 @@ const RecoverPassword = () => {
                 </Form>
             </FormStyler>
         </Container>
-        );
-    };
+    );
+};
     
     export default RecoverPassword
     

@@ -1,16 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { useData } from '../context/dataProvider'
-import { useHistory } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { Container, FormStyler } from "../components";
-import { Button, Form, Input, message, Modal } from "antd";
+import { Button, Form, Input, message } from "antd";
 import { getApp } from "firebase/app";
 import { getFunctions, connectFunctionsEmulator, httpsCallable } from "firebase/functions";
 import styled from 'styled-components'
 
 const VerifyUser = () => {
-  const history = useHistory();
   const form = Form.useForm()[0]
-  const { allProducts, tags, productsPerTag, featured, frontpageProducts } = useData()
 
   const [loading, setLoading] = useState(false)
 
@@ -30,20 +26,9 @@ const VerifyUser = () => {
     setLoading(true)
     try{
         const res = await sendVerificationEmail({ email })
+        message.success("Se ha enviado a tu correo electrónico un enlace de verificación. Pincha en él para verificar tu registro")
         console.log(res)
-    } catch(err){
-
-    }
-    setLoading(false)
-  }
-
-  const handleSubmit = async values => {
-    setLoading(true)
-    try{
-
-    } catch(err) {
-      message.error("Se ha producido un error durante el proceso de registro")
-    }
+    } catch(err){}
     setLoading(false)
   }
 
@@ -55,14 +40,8 @@ const VerifyUser = () => {
           form={form}
           layout="vertical"
           name="verifyUser"
-          onFinish={handleSubmit}
         >
           <Form.Item name="email" label="Correo electrónico" rules={[{ required: true, message: "Campo requerido" }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="code" label="Código de verificación" rules={[
-            { required: true, message: "Campo requerido" }
-          ]}>
             <Input />
           </Form.Item>
           <BtnWrapper>

@@ -2,9 +2,9 @@ import { query, collection, getDocs, getDoc, doc } from "firebase/firestore";
 import React, { createContext, useContext, useState } from "react";
 import { useFirebase } from "./firebase";
 
-const DataContext = createContext(undefined);
+export const AppContext = createContext(null);
 
-const DataProvider = ({ children }) => {
+export const AppProvider = ({ children }) => {
     const { firestore } = useFirebase()
     const [products, setProducts] = useState([])
     const [cart, setCart] = useState({ items: [], total: 0})
@@ -48,7 +48,7 @@ const DataProvider = ({ children }) => {
     }
 
     return (
-        <DataContext.Provider
+        <AppContext.Provider
             value={{
                 allProducts: products,
                 featured: products.filter(p => p.featured),
@@ -64,17 +64,17 @@ const DataProvider = ({ children }) => {
             }}
         >
             {children}
-        </DataContext.Provider>
+        </AppContext.Provider>
     );
+
 };
     
-const useData = () => {
-    const context = useContext(DataContext);
-    if (context === undefined) {
+export const useAppContext = () => {
+    const context = useContext(AppContext);
+    if (!context) {
         throw new Error("useData must be used within a DataProvider");
     }
     return context;
 };
-    
-export { DataProvider, useData };
+
         

@@ -1,13 +1,11 @@
-import React from 'react'
 import styled from 'styled-components'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 
 const ProductCard = ({ item }) => {
-    console.log(item)
     const mainPic = (item?.pictures || []).find(pic => pic.main) || { path: "./placeholder.jpg" }
     return (
         <Wrapper>
-            <Link to={`/producto/${item.slug}`}>
+            <Link href={`/producto/${item.slug || item.id}`}>
                 <Img src={mainPic?.path} />
                 <Title>{ item.name }</Title>
                 <Price>{ item.price }€</Price>

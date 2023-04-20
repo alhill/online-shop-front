@@ -28,7 +28,8 @@ const Product = ({ product }) => {
         type="primary"
         icon={<ShoppingCartOutlined />}
         onClick={() => {
-          mutateCart(product.slug, 1)
+          console.log(product)
+          mutateCart(product.slug || product.id, 1)
           setCartModal(true)
         }}
       >Añadir a la cesta</Button>
@@ -73,11 +74,13 @@ export async function getStaticProps(props) {
   let productPerId = null
 
   try{
-    product = (await getDocs(q)).docs[0].data()
+    const snapshot = (await getDocs(q)).docs[0]
+    product = { ...snapshot.data(), id: snapshot.id }
   } catch(err) {}
 
   try{
-    productPerId = (await getDoc(doc(firestore, "products", slug))).data()
+    const snapshot = await getDoc(doc(firestore, "products", slug))
+    productPerId = { ...snapshot.data(), id: snapshot.id }
   } catch(err) {}
 
   return {

@@ -7,10 +7,11 @@ import styled from 'styled-components'
 import { useAppContext } from "../context/appContext";
 import { useAuthentication } from "../context/authentication";
 import FlexWrapper from "./FlexWrapper";
+import { InnerCart } from '.'
 
 const Container = ({ children, loading }) => {
-  const { loadProducts, cart, cartModal, setCartModal, mutateCart } = useAppContext()
-  const { user, doLogin, doLogout, getLoggedUser } = useAuthentication()
+  const { loadProducts, cart, cartModal, setCartModal, forceSetCart } = useAppContext()
+  const { user, doLogin, doLogout } = useAuthentication()
 
   const [loginModal, setLoginModal] = useState({ show: false })
 
@@ -21,14 +22,18 @@ const Container = ({ children, loading }) => {
     }
   }, [])
 
+  useEffect(() => {
+    if(user?.lastCart){
+      forceSetCart(user.lastCart)
+    }
+  }, [user])
+
   const [loginForm] = Form.useForm()
 
   const handleLogin = async () => {
     const { email, password } = loginForm.getFieldsValue()
     try{
       await doLogin(email, password)
-      const justLogged = await getLoggedUser()
-      console.log({ justLogged })
       setLoginModal({ show: false })
     } catch(err) {
       if(err.code === "auth/invalid-email" || err.code === "auth/wrong-password"){
@@ -147,36 +152,14 @@ const Container = ({ children, loading }) => {
         footer={null}
       >
         <h3 style={{ marginTop: "1em", fontWeight: "bold" }}>Tu cesta</h3>
-        {(cart?.items || []).length === 0 && <p>Tu cesta está vacía</p>}
-        {(cart?.items || []).map(it => {
-          return <CartRow>
-            <p><strong>{it.qty}x</strong> - {it.name}:</p>
-            <p><strong>{it.qty * it.price}€</strong></p>
-            <div style={{
-              display: "flex",
-              flexDirection: "column"
-            }}>
-              <Button
-                size="small"
-                icon={<PlusOutlined style={{ color: "#666", fontSize: 12 }} />}
-                onClick={() => mutateCart(it.slug, 1)}
-                />
-              <Button 
-                size="small" 
-                icon={<MinusOutlined style={{ color: "#666", fontSize: 12 }} />} 
-                onClick={() => mutateCart(it.slug, -1)}
-              />
-            </div>
-          </CartRow>
-        })}
-        <Divider />
-        <h2>TOTAL: {cart.total}€</h2>
+        <InnerCart />
         <FlexWrapper>
           <Button onClick={() => setCartModal(false)}>Continuar comprando</Button>
           <Link href="/finalizar-compra">
             <Button
               type="primary"
               disabled={(cart?.items || []).length === 0}
+              onClick={() => setCartModal(false)}
             >Finalizar compra</Button>
           </Link>
         </FlexWrapper>
@@ -240,16 +223,6 @@ const Footer = styled.div`
   width: 100%;
   height: 100px;
   padding: 1em;
-`
-
-const CartRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5em;
-  & p{
-    margin: 0;
-  }
 `
 
 export default Container

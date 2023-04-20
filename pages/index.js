@@ -28,6 +28,7 @@ const Home = ({ products }) => {
           return (
             <ProductCard
               item={p}
+              key={p.id}
             />
           )
         })}

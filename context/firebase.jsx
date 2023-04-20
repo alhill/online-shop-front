@@ -32,13 +32,12 @@ function FirebaseProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isFetchingUser, setIsFetchingUser] = useState(true);
 
-  onAuthStateChanged(auth, (user) => {
+  onAuthStateChanged(auth, async (user) => {
     if (user) {
       setUser(user);
     } else {
       setUser(null);
     }
-
     setIsFetchingUser(false);
   });
 
@@ -90,6 +89,7 @@ function FirebaseProvider({ children }) {
         logoutUserFromFirebase,
         user,
         firestore,
+        firebase: firebaseApp,
         isFetchingUser,
       }}
     >

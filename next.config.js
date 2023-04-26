@@ -11,7 +11,8 @@ const nextConfig = {
             },
             ]
         : undefined
-    )
+    ),
+    output: "export"
 }
 
 module.exports = nextConfig

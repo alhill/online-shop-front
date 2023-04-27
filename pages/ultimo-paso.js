@@ -1,9 +1,2 @@
-const LastPage = () => {
-  return (
-    <>
-        LastPage
-    </>
-  );
-};
-
-export default LastPage
+import { Redirect } from "../utils"
+export default Redirect

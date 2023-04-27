@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { Container, FormStyler } from "../components";
+import { Container, FormStyler } from "../../components";
 import { Button, Form, Input, message } from "antd";
 import { getApp } from "firebase/app";
 import { getFunctions, connectFunctionsEmulator, httpsCallable } from "firebase/functions";
 import styled from 'styled-components'
 
-const VerifyUser = () => {
+const VerifyUser = ({ l }) => {
   const form = Form.useForm()[0]
 
   const [loading, setLoading] = useState(false)
@@ -33,7 +33,7 @@ const VerifyUser = () => {
   }
 
   return (
-    <Container>
+    <Container l={l}>
       <FormStyler>
         <h2>Verificar usuario</h2>
         <Form
@@ -70,5 +70,22 @@ const BtnWrapper = styled.div`
         margin-bottom: 0.5em;
     }
 `
+
+export async function getStaticProps(props) {
+  const l = props?.params?.l || "es"
+  return {
+    props: { l }
+  }
+}
+
+export async function getStaticPaths() {
+  return {
+    paths: [
+      { params: { l: "es" }},
+      { params: { l: "en" }}
+    ],
+    fallback: false
+  }
+}
 
 export default VerifyUser

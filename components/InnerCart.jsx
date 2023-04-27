@@ -4,8 +4,9 @@ import { Button, Divider, Form, Input } from 'antd'
 import styled from 'styled-components'
 import { useAuthentication } from '../context/authentication'
 import { useEffect } from 'react'
+import { t } from '../utils'
 
-const InnerCart = ({ showAddress, form, handleSubmit }) => {
+const InnerCart = ({ showAddress, form, handleSubmit, l }) => {
 
     const { cart, mutateCart } = useAppContext()
     const { user } = useAuthentication()
@@ -26,7 +27,7 @@ const InnerCart = ({ showAddress, form, handleSubmit }) => {
 
     return (
         <>
-            {(cart?.items || []).length === 0 && <p>Tu cesta está vacía</p>}
+            {(cart?.items || []).length === 0 && <p>{t(l, "emptyCart")}</p>}
             {(cart?.items || []).map(it => {
                 return (
                     <CartRow key={"cartItem-" + it.id}>

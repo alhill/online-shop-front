@@ -8,15 +8,22 @@ import { useAppContext } from "../context/appContext";
 import { useAuthentication } from "../context/authentication";
 import FlexWrapper from "./FlexWrapper";
 import { InnerCart } from '.'
+import { useRouter } from 'next/router'
+import { t } from '../utils'
 
-const Container = ({ children, loading }) => {
+const Container = ({ children, loading, l }) => {
   const { loadProducts, cart, cartModal, setCartModal, forceSetCart } = useAppContext()
   const { user, doLogin, doLogout } = useAuthentication()
+  const router = useRouter()
 
   const [loginModal, setLoginModal] = useState({ show: false })
 
   useEffect(() => {
     loadProducts()
+
+    if(router.asPath.includes("/es/") || router.asPath === "/es"){ localStorage.setItem("lastLocale", "es") }
+    else if(router.asPath.includes("/en/") || router.asPath === "/en"){ localStorage.setItem("lastLocale", "en") }
+
     if(window.location.search === "?login" && !user){
       setLoginModal({ show: true })
     }
@@ -42,11 +49,17 @@ const Container = ({ children, loading }) => {
     }
   }
 
+  const changeLng = locale => {
+    const newRoute = `/${locale}${router.asPath.slice(3)}`
+    localStorage.setItem("lastLocale", locale)
+    router.push(newRoute)
+  }
+
   return (
     <Wrapper>
       <Header>
         <Link
-          href="/"
+          href={`/${l}`}
         >
           <img 
             // src={process.env.NEXT_PUBLIC_MAIN_LOGO} 
@@ -57,18 +70,45 @@ const Container = ({ children, loading }) => {
         </Link>
         <Buttons>
           <Dropdown
+            menu={{
+              items: [
+                {
+                  key: "es",
+                  label: (
+                    <FlagWrapper onClick={() => changeLng("es")}>
+                      <Flag src={`http://localhost:3000/es.png`} size="1em" />
+                      <p>Castellano</p>
+                    </FlagWrapper>
+                  )
+                },
+                {
+                  key: "en",
+                  label: (
+                    <FlagWrapper onClick={() => changeLng("en")}>
+                      <Flag src={`http://localhost:3000/en.png`} size="1em" />
+                      <p>English</p>
+                    </FlagWrapper>
+                  )
+                }
+              ]
+            }}
+          >
+            <Flag src={`http://localhost:3000/${l}.png`} />
+          </Dropdown>
+          <Dropdown
             disabled={!user}
             menu={{
               items: [
                 {
                   key: "profile",
-                  label: <Link href="/mi-perfil">Mi perfil</Link>
+                  label: <Link href={`/${l}/mi-perfil`}>Mi perfil</Link>
                 },
                 {
                   key: "logout",
                   label: <div onClick={async () => {
                     try{
                       await doLogout()
+                      router.push(`/${l}`)
                       message.info("Has cerrado sesión correctamente, vuelve pronto!")
                     } catch(err) {
                       console.log(err)
@@ -106,7 +146,7 @@ const Container = ({ children, loading }) => {
         onCancel={() => setLoginModal({ show: false })}
         footer={null}
       >
-        <h3>Acceder a tu cuenta</h3>
+        <h3>{t(l, "logToYourAccount")}</h3>
         <Form
           name="loginForm"
           form={loginForm}
@@ -118,31 +158,33 @@ const Container = ({ children, loading }) => {
           }}
         >
           <Form.Item
-            label="Email"
+            label={t(l, "email")}
+            placeholder={t(l, "email")}
             name="email"
-            rules={[{ required: true, message: "Tienes que introducir tu correo electrónico" }]}
+            rules={[{ required: true, message: t(l, "requiredField") }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
-            label="Contraseña"
+            label={t(l, "password")}
+            placeholder={t(l, "password")}
             name="password"
-            rules={[{ required: true, message: "Tienes que introducir tu contraseña" }]}
+            rules={[{ required: true, message: t(l, "requiredField") }]}
           >
             <Input.Password />
           </Form.Item>
         </Form>
         <FlexWrapper>
-          <Button onClick={() => setLoginModal({ show: false })}>Cancelar</Button>
+          <Button onClick={() => setLoginModal({ show: false })}>{t(l, "cancel")}</Button>
           <Button 
             type="primary"
             onClick={() => loginForm.submit()}
-          >Acceder</Button>
+          >{t(l, "logIn")}</Button>
         </FlexWrapper>
         <Divider />
         <FlexWrapper>
-            <Link href="/nuevo-usuario"><Button type="primary">Crear cuenta</Button></Link>
-            <Link href="/recuperar-contrasena"><Button type="primary">Recuperar contraseña</Button></Link>
+            <Link href={`/${l}/nuevo-usuario`}><Button type="primary">{t(l, "createAccount")}</Button></Link>
+            <Link href={`/${l}/recuperar-contrasena`}><Button type="primary">{t(l, "recoverPassword")}</Button></Link>
         </FlexWrapper>
       </Modal>
 
@@ -151,16 +193,16 @@ const Container = ({ children, loading }) => {
         onCancel={() => setCartModal(false)}
         footer={null}
       >
-        <h3 style={{ marginTop: "1em", fontWeight: "bold" }}>Tu cesta</h3>
-        <InnerCart />
+        <h3 style={{ marginTop: "1em", fontWeight: "bold" }}>{t(l, "myCart")}</h3>
+        <InnerCart l={l} />
         <FlexWrapper>
-          <Button onClick={() => setCartModal(false)}>Continuar comprando</Button>
-          <Link href="/finalizar-compra">
+          <Button onClick={() => setCartModal(false)}>{t(l, "continueShopping")}</Button>
+          <Link href={`/${l}/finalizar-compra`}>
             <Button
               type="primary"
               disabled={(cart?.items || []).length === 0}
               onClick={() => setCartModal(false)}
-            >Finalizar compra</Button>
+            >{t(l, "checkout")}</Button>
           </Link>
         </FlexWrapper>
       </Modal>
@@ -201,13 +243,13 @@ const Buttons = styled.div`
   display: flex;
   align-items: center;
   .anticon{
-    font-size: 2em;
+    font-size: 1.5em;
   }
   & > * {
     display: flex;
     align-items: center;
     color: #aaa;
-    padding: 0.5em;
+    padding: 0.3em;
     transition: all 300ms;
     border-radius: 2px;
     &:hover{
@@ -223,6 +265,21 @@ const Footer = styled.div`
   width: 100%;
   height: 100px;
   padding: 1em;
+`
+
+const Flag = styled.img`
+  width: ${({ size }) => size ? size : "2em"};
+  height: ${({ size }) => size ? size : "2em"};
+  opacity: 0.8;
+  margin-right: 0.3em;
+`
+
+const FlagWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  p {
+    margin: 0 0 0 5px;
+  }
 `
 
 export default Container

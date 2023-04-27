@@ -11,35 +11,39 @@ const AuthenticationProvider = ({ children }) => {
     createUserOnFirebase,
     doUserLoginOnFirebase,
     logoutUserFromFirebase,
-    user,
-    isFetchingUser,
+    user
   } = useFirebase();
 
   const [userState, setUserState] = useState()
+  const [loadingAuth, setLoadingAuth] = useState(true)
 
   useEffect(() => {
-    // console.log(user)
     if(user){
       getLoggedUser()
+    } else {
+      setLoadingAuth(false)
     }
   }, [user])
 
-  useEffect(() => {
-    // console.log({ userState })
-  }, [userState])
-
   const getLoggedUser = async () => {
-    if(user){
-      const snapshot = await getDoc(doc(firestore, "users", user.uid))
-      const fbUser = snapshot.exists() ? snapshot.data() : null
-      setUserState({
-        email: user.email,
-        uid: user.uid,
-        ...fbUser
-      })
-    } else {
-      return null
+    console.log("holi!")
+    setLoadingAuth(true)
+    try{
+      if(user){
+        const snapshot = await getDoc(doc(firestore, "users", user.uid))
+        const fbUser = snapshot.exists() ? snapshot.data() : null
+        setUserState({
+          email: user.email,
+          uid: user.uid,
+          ...fbUser
+        })
+      } else {
+        return null
+      }
+    } catch(err) {
+      console.log(err)
     }
+    setLoadingAuth(false)
   }
 
   const doLogin = (email, password) =>
@@ -70,7 +74,7 @@ const AuthenticationProvider = ({ children }) => {
       value={{
         user: userState,
         getLoggedUser,
-        isFetchingUser,
+        loadingAuth,
         doLogin,
         doRegister,
         doLogout,

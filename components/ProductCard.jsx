@@ -1,13 +1,13 @@
 import styled from 'styled-components'
 import Link from 'next/link'
 
-const ProductCard = ({ item }) => {
+const ProductCard = ({ item, l }) => {
     const mainPic = (item?.pictures || []).find(pic => pic.main) || { path: "./placeholder.jpg" }
     return (
         <Wrapper>
-            <Link href={`/producto/${item.slug || item.id}`}>
+            <Link href={`/${l}/producto/${item.slug || item.id}`}>
                 <Img src={mainPic?.path} />
-                <Title>{ item.name }</Title>
+                <Title>{ l === "en" ? (item?.name_en || item?.name) : item?.name }</Title>
                 <Price>{ item.price }€</Price>
             </Link>
         </Wrapper>

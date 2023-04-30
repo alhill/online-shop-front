@@ -224,6 +224,7 @@ const Body = styled.div`
   height: 100%;
   align-items: center;
   width: calc(100vw - 4em);
+  max-width: 1200px;
   flex: 1;
 `
 

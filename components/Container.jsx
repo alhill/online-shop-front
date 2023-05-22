@@ -1,6 +1,6 @@
 import { UserOutlined } from "@ant-design/icons";
 import { MinusOutlined, PlusOutlined, ShoppingCartOutlined } from "@ant-design/icons/lib/icons";
-import { Button, Divider, Form, Input, Modal, message, Dropdown } from "antd";
+import { Button, Divider, Form, Input, Modal, message, Dropdown, Badge } from "antd";
 import Link from 'next/link'
 import React, { useEffect, useState } from "react";
 import styled from 'styled-components'
@@ -11,7 +11,7 @@ import { InnerCart } from '.'
 import { useRouter } from 'next/router'
 import { t } from '../utils'
 
-const Container = ({ children, loading, l }) => {
+const Container = ({ children, loading, l, topBanner }) => {
   const { loadProducts, cart, cartModal, setCartModal, forceSetCart } = useAppContext()
   const { user, doLogin, doLogout } = useAuthentication()
   const router = useRouter()
@@ -30,10 +30,19 @@ const Container = ({ children, loading, l }) => {
   }, [])
 
   useEffect(() => {
-    if(user?.lastCart){
-      forceSetCart(user.lastCart)
+    if(!cart || (Array.isArray(cart?.items) && cart.items.length === 0)){
+      if(user?.lastCart){
+        forceSetCart(user.lastCart)
+      } else {
+        try{
+          const localCart = JSON.parse(localStorage.getItem("lastCart"))
+          if(localCart){
+            forceSetCart(localCart)
+          }
+        } catch(err) {}
+      }
     }
-  }, [user])
+  }, [cart, user])
 
   const [loginForm] = Form.useForm()
 
@@ -41,6 +50,7 @@ const Container = ({ children, loading, l }) => {
     const { email, password } = loginForm.getFieldsValue()
     try{
       await doLogin(email, password)
+      loginForm.resetFields()
       setLoginModal({ show: false })
     } catch(err) {
       if(err.code === "auth/invalid-email" || err.code === "auth/wrong-password"){
@@ -129,11 +139,15 @@ const Container = ({ children, loading, l }) => {
               />
             </div>
           </Dropdown>
-          <ShoppingCartOutlined 
-            onClick={() => setCartModal(true)}
-          />
+          <Badge count={Array.isArray(cart?.items) ? cart.items.reduce((acc, it) => acc + it.qty, 0) : 0}>
+            <ShoppingCartOutlined 
+              onClick={() => setCartModal(true)}
+              style={{ fontSize: 26 }}
+            />
+          </Badge>
         </Buttons>
       </Header>
+      <Banner src={Array.isArray(topBanner) && topBanner[0]} />
       <Body>
         { children }
       </Body>
@@ -152,6 +166,7 @@ const Container = ({ children, loading, l }) => {
           form={loginForm}
           layout="vertical"
           onFinish={() => handleLogin()}
+          onKeyUp={evt => evt.code === "Enter" && loginForm.submit()}
           initialValues={{
             email: "",
             password: ""
@@ -215,7 +230,9 @@ const Wrapper = styled.div`
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
-  min-width: 100vw;
+  // min-width: 100vw;
+  max-width: 100vw;
+  overflow-x: hidden;
 `
 
 const Body = styled.div`
@@ -226,6 +243,7 @@ const Body = styled.div`
   width: calc(100vw - 4em);
   max-width: 1200px;
   flex: 1;
+  
 `
 
 const Header = styled.div`
@@ -281,6 +299,14 @@ const FlagWrapper = styled.div`
   p {
     margin: 0 0 0 5px;
   }
+`
+
+const Banner = styled.img`
+  width: 100%;
+  max-height: 300px;
+  max-width: 1920px;
+  object-fit: cover;
+  margin-bottom: 2em;
 `
 
 export default Container

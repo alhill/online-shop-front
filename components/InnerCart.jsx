@@ -33,7 +33,12 @@ const InnerCart = ({ showAddress, form, handleSubmit, l }) => {
                     <CartRow key={"cartItem-" + it.id}>
                         <p style={{ flex: 1 }}><strong>{it.qty}x</strong> - {it.name}:</p>
                         <>
-                            <p><strong>{it.qty * it.price}€</strong></p>
+                            <p>
+                                <strong style={{ 
+                                    textDecoration: it.discountedPrice ? "line-through" : "none"
+                                }}>{it.qty * it.price}€</strong>
+                                {it.discountedPrice && <strong style={{ color: "red" }}>&nbsp;&nbsp;{ it.qty * it.discountedPrice }€</strong>}
+                            </p>
                             <div style={{
                                 display: "flex",
                                 flexDirection: "column",

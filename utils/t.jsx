@@ -65,6 +65,38 @@ const t = (locale = "es", key) => {
         endRegister: {
             "es": "Finalizar registro",
             "en": "Register"
+        },
+        featuredProducts: {
+            "es": "Productos destacados",
+            "en": "Featured products"
+        },
+        relevance: {
+            "es": "Relevancia",
+            "en": "Relevance"
+        },
+        priceUp: {
+            "es": "Precio ↗",
+            "en": "Price ↗"
+        },
+        priceDn: {
+            "es": "Precio ↘",
+            "en": "Price ↘"
+        },
+        azUp: {
+            "es": "Nombre ↗",
+            "en": "Name ↗"
+        },
+        azDn: {
+            "es": "Nombre ↘",
+            "en": "Name ↘"
+        },
+        orderBy: {
+            "es": "Orden",
+            "en": "Order"
+        },
+        categories: {
+            "es": "Categorias",
+            "en": "Categories"
         }
     }
 

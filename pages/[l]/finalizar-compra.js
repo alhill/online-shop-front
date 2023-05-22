@@ -1,15 +1,21 @@
 import { useState, useEffect } from 'react'
 import { Container, InnerCart, CreditCardForm, FlexWrapper } from '../../components'
-import { Button, Form } from 'antd'
+import { Button, Form, message } from 'antd'
 import styled from 'styled-components'
 import { getFunctions, httpsCallable, connectFunctionsEmulator } from 'firebase/functions'
 import { useFirebase } from '../../context/firebase'
 import { useAuthentication } from "../../context/authentication";
 import dayjs from 'dayjs'
+import { useRouter } from 'next/router'
+import { useAppContext } from '../../context/appContext'
+import { collection, documentId, getDocs, query, where } from 'firebase/firestore'
+import { firestore } from '../../utils'
 
 const LastStep = ({ l }) => {
     const { firebase } = useFirebase()
     const { user } = useAuthentication()
+    const { cart, forceSetCart } = useAppContext()
+    const router = useRouter()
 
     const functions = getFunctions(firebase, "europe-west1")
     connectFunctionsEmulator(functions, "localhost", 5001);
@@ -24,7 +30,7 @@ const LastStep = ({ l }) => {
 
     const handleCreateCheckout = async () => {
         try{
-            if(!currentCheckout){
+            if(!currentCheckout || !!currentCheckout?.error_code){
                 const amount = user?.lastCart?.total
                 if(!amount){ throw new Error("Falta el monto de la transacción") }
                 const userData = addressForm.getFieldsValue()
@@ -33,9 +39,15 @@ const LastStep = ({ l }) => {
                 const { data: checkout } = await createCheckout({
                     userId,
                     email: email || userData.email,
-                    amount: 1,
-                    userData
+                    amount: CarTwoTone.total,
+                    userData,
+                    description: `${new Date()} - ${email}`
                 })
+                if(checkout.error_code){
+                    message.error("Ocurrió un error preparando la pasarela de pago. Inténtalo más tarde.")
+                    console.log(checkout)
+                    // router.push("/")
+                }
                 setCurrentCheckout(checkout)
                 if(!checkout){
                     message.error("El pago no puede realizarse en estos instantes")
@@ -83,6 +95,33 @@ const LastStep = ({ l }) => {
         } catch(err){}
     }
 
+    const checkPrices = async () => {
+        const productsToCheck = (await getDocs(query(collection(firestore, "products"), where(documentId(), "in", (cart?.items || []).map(p => p.id))))).docs.map(p => {
+            return {
+                ...p.data(),
+                id: p.id
+            }
+        })
+        let flag = true
+        const checkedCartItems = (cart?.items || []).map(it => {
+            const serverItem = productsToCheck.find(pchk => pchk.id === it.id)
+            if(serverItem.price !== it.price || serverItem.discountedPrice != it.discountedPrice){ flag = false }
+            return {
+                ...it,
+                price: serverItem?.price,
+                discountedPrice: serverItem?.discountedPrice,
+            }
+        })
+        if(!flag){ 
+            forceSetCart({
+                items: checkedCartItems,
+                total: checkedCartItems.reduce((acc, it) => acc + ((it.discountedPrice || it.price) * it.qty), 0)
+            })
+        }
+
+        return flag
+    }
+
     return (
         <Container l={l}>
             <h2>Finalizar compra</h2>
@@ -100,11 +139,16 @@ const LastStep = ({ l }) => {
                 <Button
                     type="primary"
                     size="large"
-                    onClick={() => {
-                        if(tab === "checkAddress"){
-                            addressForm.submit()
-                        } else if(tab === "creditCardData"){
-                            ccForm.submit() 
+                    onClick={async () => {
+                        const checkedPrices = await checkPrices()
+                        if(checkedPrices){
+                            if(tab === "checkAddress"){
+                                addressForm.submit()
+                            } else if(tab === "creditCardData"){
+                                ccForm.submit() 
+                            }
+                        } else {
+                            message.warning("Los precios han variado desde el momento en el que pusiste el artículo en la cesta. Revisa la cesta antes de continuar")
                         }
                     }}
                 >{ tab === "checkAddress" ? "Finalizar compra" : "Efectuar pago" }</Button>

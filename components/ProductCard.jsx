@@ -17,7 +17,12 @@ const ProductCard = ({ item, l }) => {
             <Link href={`/${l}/producto/${item.slug || item.id}`}>
                 <Img src={mainPic?.path} height={imgHeight} />
                 <Title>{ l === "en" ? (item?.name_en || item?.name) : item?.name }</Title>
-                <Price>{ item.price }€</Price>
+                <Prices>
+                    <Price hasDiscounted={!!item?.discountedPrice}>{ item.price }€</Price>
+                    { item.discountedPrice && (
+                        <Price discounted={true}>{ item.discountedPrice }€</Price>
+                    )}
+                </Prices>
             </Link>
         </Wrapper>
     )
@@ -54,9 +59,16 @@ const Title = styled.p`
     margin: 0;
     padding: 0.5em 0;
 `
+const Prices = styled.div`
+    display: flex;
+`
+
 const Price = styled.p`
     font-weight: bold;
     font-size: 1.2em;
+    color: ${({ discounted }) => discounted ? "red" : "#333" };
+    margin-right: ${({ hasDiscounted }) => hasDiscounted ? "0.5em" : 0};
+    text-decoration: ${({ hasDiscounted }) => hasDiscounted ? "line-through !important" : "none"}
 `
 
 export default ProductCard

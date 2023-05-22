@@ -28,14 +28,12 @@ export const AppProvider = ({ children }) => {
     )
 
     const mutateCart = async (slug, delta) => {
-        console.log({ slug, delta })
-        console.log(products)
         const itemToAdd = products.find(it => it.slug === slug || it.id === slug)
-        console.log({ itemToAdd })
         const actualCartItem = (cart?.items || []).find(it => it.slug === slug) || {
             slug: itemToAdd?.slug || itemToAdd?.id,
             id: itemToAdd?.id,
             price: itemToAdd.price,
+            discountedPrice: itemToAdd.discountedPrice,
             name: itemToAdd.name,
             qty: 0
         }
@@ -46,20 +44,22 @@ export const AppProvider = ({ children }) => {
                 id: actualCartItem.id,
                 name: actualCartItem.name,
                 qty: (actualCartItem?.qty || 0) + delta,
-                price: actualCartItem.price
+                price: actualCartItem.price,
+                discountedPrice: actualCartItem.discountedPrice
             }
         ].filter(it => it.qty > 0)
-        const total = items.reduce((acc, it) => acc + (it.qty * it.price), 0)
+        const total = items.reduce((acc, it) => acc + (it.qty * (it.discountedPrice || it.price)), 0)
 
         const newCart = { items, total }
         setCart(newCart)
 
-        console.log({ newCart })
-
-        try{ //SAVE IN DATABASE CART STATUS
-            await updateDoc(doc(firestore, "users", user.uid), { lastCart: newCart })
-        } catch(err) {
-            console.log(err)
+        localStorage.setItem("lastCart", JSON.stringify(newCart))
+        if(user){
+            try{ //SAVE IN DATABASE CART STATUS
+                await updateDoc(doc(firestore, "users", user.uid), { lastCart: newCart })
+            } catch(err) {
+                console.log(err)
+            }
         }
     }
 

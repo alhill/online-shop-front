@@ -26,7 +26,6 @@ const AuthenticationProvider = ({ children }) => {
   }, [user])
 
   const getLoggedUser = async () => {
-    console.log("holi!")
     setLoadingAuth(true)
     try{
       if(user){
@@ -67,7 +66,10 @@ const AuthenticationProvider = ({ children }) => {
       }
     });
 
-  const doLogout = async () => await logoutUserFromFirebase();
+  const doLogout = async () => {
+    await logoutUserFromFirebase();
+    setUserState()
+  }
 
   return (
     <AuthenticationContext.Provider

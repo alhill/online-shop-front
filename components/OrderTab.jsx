@@ -21,6 +21,8 @@ const UserDataTab = () => {
                 const ref = collection(firestore, `users/${user.uid}/orders`)
                 const docs = (await getDocs(ref)).docs
                 const orders = docs.map(doc => ({ ...doc.data(), id: doc.id }))
+
+                console.log({ orders, user })
                 setOrders(orders)
                 setFilteredOrders(orders)
             })()
@@ -30,7 +32,15 @@ const UserDataTab = () => {
     return (
         <Wrapper>
             <h3>Pedidos</h3>
-            {(orders || []).length === 0 && <p style={{ color: "#aaa" }}>No hay pedidos</p>}
+            {(orders || []).length === 0 ? <p style={{ color: "#aaa" }}>No hay pedidos</p> : (
+                <TableWrapper>
+                    {(orders || []).map((or, i) => {
+                        return (
+                            <Row>{ JSON.stringify(or) }</Row>
+                        )
+                    })}
+                </TableWrapper>
+            )} 
         </Wrapper>
     )
 }
@@ -40,6 +50,15 @@ const Wrapper = styled.div`
     flex-direction: column;
     align-items: center;
     width: 100%;
+`
+
+const TableWrapper = styled.div`
+    display: flex;
+    flex-direction: column;
+`
+
+const Row = styled.div`
+    display: flex
 `
     
 export default UserDataTab
